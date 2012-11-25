@@ -6,38 +6,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
 
-import javax.imageio.ImageIO;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JToggleButton;
 import javax.swing.ScrollPaneConstants;
 
-import main.Post;
-
-import objects.BaseFloor;
 import objects.Floor;
-import objects.SimpleMarker;
-
-import com.google.gson.Gson;
-
-import drawable.Marker;
-import drawable.MarkerArrayList;
-import drawable.Path;
-import drawable.PathArrayList;
 
 public class Editor {
 

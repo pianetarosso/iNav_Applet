@@ -3,14 +3,11 @@ package main;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.net.MalformedURLException;
-import java.net.URL;
 
 import javax.swing.JApplet;
 
-import editor.Editor;
-
-import objects.BaseFloor;
 import objects.Floor;
+import editor.Editor;
 
 
 public class MapGenerator extends JApplet {
@@ -21,7 +18,6 @@ public class MapGenerator extends JApplet {
 
 	// valori globali
 	private static final String ID_EDIFICIO = "id";
-	private static final String PIANI = "piani";
 
 	// VARIABILI
 	private int id_edificio;
@@ -49,27 +45,14 @@ public class MapGenerator extends JApplet {
 		this.repaint();
 	}
 
-	/*
-	 * public String loadCookie() {
-	 * 
-	 * try { JSObject myBrowser = (JSObject) JSObject.getWindow(this); JSObject
-	 * myDocument = (JSObject) myBrowser.getMember("document"); String myCookie
-	 * = (String)myDocument.getMember("cookie"); if (myCookie.length() > 0)
-	 * return myCookie;
-	 * 
-	 * myDocument.call("getFloor", null);
-	 * 
-	 * } catch (Exception e){ e.printStackTrace(); } return "?";
-	 * 
-	 * // return this.getParameter("cookie"); }
-	 */
-
 	private void loadParameters() throws MalformedURLException {
 
 		id_edificio = Integer.parseInt(this.getParameter(ID_EDIFICIO));
-		floors = Floor.parse(this.getParameter(PIANI), this.getCodeBase());
+		floors = Floor.parse(this, this.getCodeBase());
 		
+		for (Floor f:floors)
+			System.out.println(f.toString());
 		//floors = Floor.parse(this.getParameter(PIANI), new URL("http://127.0.0.1:8000"));
-		
+	
 	}
 }
