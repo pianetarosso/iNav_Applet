@@ -15,14 +15,6 @@ import objects.Floor;
 
 public class Editor {
 
-	
-
-	private Container cp;
-
-	private Floor selectedFloor = null;
-
-	private static final String ERROR_SAVING = "Errore nel salvataggio! Devi creare mappe per tutti i piani!";
-
 	// STRUTTURE GRAFICHE
 	// ///////////////////////////////////////////////////////
 
@@ -41,62 +33,38 @@ public class Editor {
 	private JPanelImmagine immagine;
 	// ///////////////////////////////////////////////////////////////////////////
 
-	// ELEMENTI PASSATI DALLA PAGINA
-	// ////////////////////////////////////////////
-
-	// array della corrispondenza tra immagini e piani
-	private Floor[] floors;
-
-	private int id_edificio;
-
-	// ////////////////////////////////////////////////////////////////////////////
-
-	public Editor(Container cp, Floor[] floors, int id_edificio) {
-
-		this.floors = floors;
-		this.cp = cp;
-		this.id_edificio = id_edificio;
-		
+	
+	public Editor(Container cp, Floor[] floors) {
 
 		// imposto il layout del contenitore principale
 		fondo.setLayout(new BorderLayout());
-
-		// gestione degli strumenti (lato dx)
-		strumenti = new RightPanel(this);
-		
-		// gestione dei piani (lato sx)
-		piani = new LeftJPanel(floors, cp, this);
 		
 		// immagine (centro)
-		scrollImage = buildImagePanel();
+		scrollImage = buildImagePanel(floors);
 
-		
+		// gestione degli strumenti (lato dx)
+		strumenti = new RightPanel(this, immagine);
+				
+		// gestione dei piani (lato sx)
+		piani = new LeftJPanel(floors, cp, immagine);
+				
+				
 		// aggiungo tutto al pannello principale
 		fondo.add(piani, BorderLayout.WEST);
 		fondo.add(strumenti, BorderLayout.EAST);
 		fondo.add(scrollImage, BorderLayout.CENTER);
 
-		// click sul piano di default (il più basso)
-//		defaultFloorButton.doClick();
-//		defaultFloorButton.setSelected(true);
-	}
-
-	public void setCurrentFloor(Floor selectedFloor) {
-		this.selectedFloor = selectedFloor;
-		immagine.setImage(selectedFloor.getImage(), selectedFloor.getFloor());
-	}
-	
-	public void setDrawOperationType(int number) {
-		immagine.setDrawOperationType(number);
 	}
 	
 	public JPanel getPanel() {
 		return fondo;
 	}
 
-	private JScrollPane buildImagePanel() {
+	
+	// pannello di disegno dell'immagine
+	private JScrollPane buildImagePanel(Floor[] floors) {
 
-		immagine = new JPanelImmagine();
+		immagine = new JPanelImmagine(floors);
 
 		scrollImage = new JScrollPane(immagine,
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,

@@ -1,5 +1,7 @@
 package editor;
 
+import gestore_immagini.JPanelImmagine;
+
 import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,12 +22,13 @@ public class LeftJPanel extends JPanel {
 
 	private Floor[] floors;
 	private Container cp;
-	private Editor ed;
+	private JPanelImmagine immagine;
 
-	public LeftJPanel(Floor[] floors, Container cp, Editor ed) {
+	
+	public LeftJPanel(Floor[] floors, Container cp, JPanelImmagine immagine) {
 		this.floors = floors;
 		this.cp = cp;
-		this.ed = ed;
+		this.immagine = immagine;
 
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		buildFloors();
@@ -51,7 +54,6 @@ public class LeftJPanel extends JPanel {
 			floors[i].setButton(button);
 
 		}
-
 		new LoadImages();
 	}
 
@@ -76,7 +78,7 @@ public class LeftJPanel extends JPanel {
 					f.enableButton();
 				}
 
-				floors[floors.length-1].performClick();
+				floors[0].performClick();
 			} catch (IOException e) {
 				System.out.println("Error loading Image!");
 				e.printStackTrace();
@@ -99,7 +101,8 @@ public class LeftJPanel extends JPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 
-			ed.setCurrentFloor(floor);
+			immagine.setSelectedFloor(floor);
+			
 			for (Floor f:floors)
 				f.setButtonSelected(false);
 			floor.setButtonSelected(true);

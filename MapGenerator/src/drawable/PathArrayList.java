@@ -14,10 +14,12 @@ public class PathArrayList extends ArrayList<Path> {
 
 	private static final String CONFIRM_DELETE_MESSAGE = "Sei sicuro di voler cancellare questa Path?";
 
+	// costruttore
 	public PathArrayList() {
 		super();
 	}
 
+	// trovo la path che è stata cliccata
 	protected Path findClicked(Point p, ZoomManager zoom) {
 
 		for (Path i : this)
@@ -27,6 +29,7 @@ public class PathArrayList extends ArrayList<Path> {
 		return null;
 	}
 
+	// aggiungo una path (con test delle collisioni)
 	public boolean add(Path path, ZoomManager zoom) {
 
 		if (this.isEmpty())
@@ -55,6 +58,7 @@ public class PathArrayList extends ArrayList<Path> {
 		return this.add(path);
 	}
 
+	// cancello una path dall'array
 	public void delete(MouseEvent arg0, JPanelImmagine jpi) {
 
 		Point p = arg0.getPoint();
@@ -68,38 +72,13 @@ public class PathArrayList extends ArrayList<Path> {
 
 		if (pathDesignated != null) {
 			arg0.consume();
-			boolean test = jpi.createConfirmDialog(CONFIRM_DELETE_MESSAGE);
-			if (test) {
+			//boolean test = jpi.createConfirmDialog(CONFIRM_DELETE_MESSAGE);
+			//if (test) {
 				this.remove(pathDesignated);
 				jpi.updatePanel();
-			}
+			//}
 		}
 
 	}
 
 }
-
-/*
- * 
- * Graphics2D antiAlias = (Graphics2D) g;
- * antiAlias.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
- * RenderingHints.VALUE_ANTIALIAS_ON);
- * 
- * ZoomManager zoom = ((JPanelImmagine)this.getParent()).zoom;
- * 
- * antiAlias.setColor(DEFAULT_COLOR); antiAlias.setStroke(spessore);
- * 
- * Point[] coordinates = updateCoordinates(zoom);
- * 
- * 
- * // Line2D line = new Line2D.Double(coordinates[0], coordinates[1]);
- * 
- * //antiAlias.draw(line);
- * 
- * 
- * Line2D line = new Line2D.Double(new Point(2,0), new Point(90, 0)); shape =
- * line;
- * 
- * // AffineTransform at = new AffineTransform().getRotateInstance(45); //
- * antiAlias.transform(at); // antiAlias.rotate(45); antiAlias.draw(line);
- */

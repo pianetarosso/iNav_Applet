@@ -1,5 +1,7 @@
 package editor;
 
+import gestore_immagini.JPanelImmagine;
+
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -22,7 +24,7 @@ public class RightPanel extends JPanel {
 	private static final int ICON_HEIGHT = 40;
 
 	// ICONE
-	// ////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////
 
 	// Path di base
 	private static final String path = "icons/";
@@ -34,14 +36,19 @@ public class RightPanel extends JPanel {
 	private static final String[] icon_name = { "save", "delete", "move",
 		"path", "marker" };
 
+	//////////////////////////////////////////////////////////////////////////
+	
+	
 	private Editor ed;
-
+	private JPanelImmagine immagine;
 	private JToggleButton[] buttons = new JToggleButton[icon_name.length];
 
-	public RightPanel(Editor ed) {
+	
+	
+	public RightPanel(Editor ed, JPanelImmagine immagine) {
 
 		this.ed = ed;
-
+		this.immagine = immagine;
 		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		
 		buildInstruments();
@@ -110,7 +117,7 @@ public class RightPanel extends JPanel {
 
 
 
-	// listener temporaneo sul pulsante degli strumenti
+	// listener sul pulsante degli strumenti
 	class ActionButton implements ActionListener {
 
 		private String name;
@@ -123,8 +130,10 @@ public class RightPanel extends JPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			
 			System.out.println(name + " " + number);
-			ed.setDrawOperationType(number);
+			immagine.setDrawOperationType(number);
+			
 			if (number != 0)
 				for (int i = 1; i < buttons.length; i++)
 					buttons[i].setEnabled(i != number);

@@ -10,18 +10,12 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.image.BufferedImage;
 
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import dialogs.ConfirmDialog;
-import dialogs.MarkerDialog;
-import drawable.DrawableMarker;
+import objects.Floor;
 import drawable.Marker;
-import drawable.MarkerArrayList;
 import drawable.Path;
-import drawable.PathArrayList;
 
 public class JPanelImmagine extends JPanel {
 
@@ -38,11 +32,10 @@ public class JPanelImmagine extends JPanel {
 	// VARIABILI
 	// /////////////////////////////////////////////////////////////////////////////////
 
-	// immagine visualizzata
-	private BufferedImage image = null;
-
+	
 	// piano selezionato
-	private int selected_floor;
+	private Floor selected_floor = null;
+	private Floor[] floors;
 
 	public static final int TYPE_MARKER = 4;
 	public static final int TYPE_PATH = 3;
@@ -54,11 +47,8 @@ public class JPanelImmagine extends JPanel {
 	// mouse
 	public int type = TYPE_MOVE;
 
-	// contenitore dei marker e degli oggetti da disegnare
-	public MarkerArrayList marker = new MarkerArrayList();
-
 	// contenitore dei percorsi da disegnare
-	public PathArrayList path = new PathArrayList();
+	//public PathArrayList path = new PathArrayList();
 
 	// variabili per la gestione dei zoom e spostamento
 	public ZoomManager zoom;
@@ -78,8 +68,10 @@ public class JPanelImmagine extends JPanel {
 	// ///////////////////////////////////////////////////////////////////
 
 	// Costruttore
-	public JPanelImmagine() {
+	public JPanelImmagine(Floor[] floors) {
 
+		this.floors = floors;
+		
 		// elimino il layout, per impostare gli oggetti con le coordinate
 		setLayout(null);
 
@@ -102,16 +94,18 @@ public class JPanelImmagine extends JPanel {
 	// Imposto una nuova immagine nel panel, e calcolo lo zoom per visualizzare
 	// l'immagine
 	// a pieno schermo con lo zoom minimo
-	public void setImage(BufferedImage image, int floor) {
-
-		this.image = image;
-		this.selected_floor = floor;
-
-		zoom.setImage(image);
+	public void setSelectedFloor(Floor floor) {
+		
+		zoom.setImage(floor.getImage());
 		move = new MoveManager(this);
 
-		marker.setVisibleMarkers(floor);
-
+		this.selected_floor = floor;
+		
+		// imposto la visibilità dei markers a seconda di quale piano viene selezionato
+		for (Floor f:floors) 
+			f.setVisible(false);
+		selected_floor.setVisible(true);
+		
 		updatePanel();
 	}
 
@@ -127,9 +121,9 @@ public class JPanelImmagine extends JPanel {
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
 				RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
-		if (image != null) {
+		if (selected_floor != null) {
 			// disegno l'immagine scalata secondo il fattore di zoom
-			g2.drawRenderedImage(image, zoom.scaleBufferedImage());
+			g2.drawRenderedImage(selected_floor.getImage(), zoom.scaleBufferedImage());
 		}
 
 		// antialiasing
@@ -142,8 +136,8 @@ public class JPanelImmagine extends JPanel {
 			g2.draw(currentPath.getLine(zoom));
 		}
 
-		for (Path p : path)
-			if (p.floor == selected_floor) {
+		/*for (Path p:selected_floor.getPaths()) {
+			
 				g2.setStroke(new BasicStroke(Path.SPESSORE));
 				if ((mouseMovedOnPath != null)
 						&& p.testMouseClickPosition(mouseMovedOnPath, zoom))
@@ -151,7 +145,7 @@ public class JPanelImmagine extends JPanel {
 				else
 					g2.setColor(Path.DEFAULT_COLOR);
 				g2.draw(p.getLine(zoom));
-			}
+		}*/
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////////////////////
@@ -207,7 +201,7 @@ public class JPanelImmagine extends JPanel {
 						setMarker(arg0.getPoint());
 						arg0.consume();
 					case TYPE_DELETE:
-						path.delete(arg0, jpi);
+					//	path.delete(arg0, jpi);
 
 					}
 					currentPath = null;
@@ -271,46 +265,35 @@ public class JPanelImmagine extends JPanel {
 	// MARKER //
 	private void setMarker(Point p) {
 
-		Object[] output = createMarkerDialog(null);
+		Marker new_m = selected_floor.addMarker(p, zoom);
+		
+		// aggiungo l'oggetto al JPanel principale
+		add(new_m);
 
-		if (output != null) {
-			Marker new_m = new Marker(p, zoom);
+		// imposto la posizione dell'oggetto sul JPanel
+		new_m.setBounds(zoom);
 
-			if (!isTooNear(new_m)) {
+		new_m.setVisible(true);
+		new_m.setEnabled(true);
 
-				new_m.setProperties(output);
-				new_m.floor = selected_floor;
-
-				marker.add(new_m);
-
-				// aggiungo l'oggetto al JPanel principale
-				add(new_m);
-
-				// imposto la posizione dell'oggetto sul JPanel
-				new_m.setBounds(zoom);
-
-				new_m.setVisible(true);
-				new_m.setEnabled(true);
-
-				updatePanel();
-			}
-		}
+		updatePanel();
 	}
 
+	
 	// Path //
 	private void setPath(Point p, boolean last_point) {
 		if (TYPE_PATH == type) {
 			if (currentPath == null) {
 
 				System.out.println("new path: " + p.toString());
-				currentPath = new Path(p, selected_floor, zoom);
+				//currentPath = new Path(p, selected_floor, zoom);
 
 			} else if (!last_point)
 				currentPath.setArrivePoint(p, zoom);
 
 			else if (p != null) {
 				currentPath.setArrivePoint(p, zoom);
-				path.add(currentPath, zoom);
+		//		path.add(currentPath, zoom);
 				currentPath = null;
 			} else
 				currentPath = null;
@@ -321,87 +304,10 @@ public class JPanelImmagine extends JPanel {
 
 	}
 
-	/*
-	 * // INGRESSO // private void setIngresso(Point p) {
-	 * 
-	 * Ingresso new_i = new Ingresso(p, zoom);
-	 * 
-	 * if (!isTooNear(new_i)) {
-	 * 
-	 * ingresso.add(new_i);
-	 * 
-	 * // aggiungo l'oggetto al JPanel principale add(new_i);
-	 * 
-	 * // imposto la posizione dell'oggetto sul JPanel new_i.setBounds(zoom);
-	 * 
-	 * new_i.setVisible(true); new_i.setEnabled(true);
-	 * 
-	 * updatePanel(); } }
-	 */
-	private boolean isTooNear(DrawableMarker dos) {
+	
+	
+	
 
-		for (Marker m : marker) {
-			if (dos.testNear(m))
-				return true;
-		}
-
-		/*
-		 * for (Ingresso i:ingresso) { if (dos.testNear(i)) return true; }
-		 */return false;
-	}
-
-	// costruzione e presentazione del dialog per generare un marker
-	public Object[] createMarkerDialog(Marker m) {
-
-		// Create and set up the window.
-		JFrame frame = new JFrame();
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-		// Display the window.
-		frame.pack();
-		frame.setVisible(true);
-
-		// carico i parametri per i test dei dati
-		Object[] testParameters = marker.getTestParameters(selected_floor);
-
-		// creo e mostro il markerDialog
-		MarkerDialog markerDialog = new MarkerDialog(frame,
-				(Object[]) testParameters[0], (Object[]) testParameters[1], m);
-		markerDialog.pack();
-		markerDialog.setVisible(true);
-
-		// elimino la finestra che si viene a creare dopo
-		// aver salvato tutti i dati
-		frame.dispose();
-
-		return markerDialog.getValidatedData();
-	}
-
-	// dialogo di conferma
-	public boolean createConfirmDialog(String message) {
-
-		String title = "Conferma cancellazione";
-
-		// Create and set up the window.
-		JFrame frame = new JFrame();
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // this lauche
-																	// security
-																	// exception.EXIT_ON_CLOSE);
-
-		// Display the window.
-		frame.pack();
-		frame.setVisible(true);
-
-		// creo e mostro il markerDialog
-		ConfirmDialog confirmDialog = new ConfirmDialog(frame, title, message);
-		confirmDialog.pack();
-		confirmDialog.setVisible(true);
-
-		// elimino la finestra che si viene a creare dopo
-		// aver salvato tutti i dati
-		frame.dispose();
-
-		return confirmDialog.getValidatedData();
-	}
+	
 
 }

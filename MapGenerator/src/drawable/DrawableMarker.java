@@ -16,8 +16,7 @@ import java.awt.event.MouseListener;
 import javax.swing.JComponent;
 import javax.swing.border.EmptyBorder;
 
-public abstract class DrawableMarker extends JComponent implements
-		MouseListener {
+public abstract class DrawableMarker extends JComponent implements MouseListener {
 
 	private static final long serialVersionUID = -1934599507737914205L;
 
@@ -45,10 +44,8 @@ public abstract class DrawableMarker extends JComponent implements
 	private Color default_color;
 
 	// posizione dell'oggetto
-	protected int x, y;
-
-	// piano del marker
-	public int floor;
+	public int x;
+	public int y;
 
 	// variabile per sapere se sull'oggetto è passato il mouse o meno
 	private boolean mouseEntered = false;
@@ -134,14 +131,11 @@ public abstract class DrawableMarker extends JComponent implements
 	// testo se i punti sono troppo vicini tra loro
 	public boolean testNear(Marker m) {
 
-		if (m.floor == floor) {
-			Point in = new Point(x, y);
-			Point out = new Point(m.x, m.y);
+		Point in = new Point(x, y);
+		Point out = new Point(m.x, m.y);
 
-			// se TRUE sono troppo vicini
-			return (Math.abs(in.distance(out)) < MIN_DISTANCE_BETWEEN_OBJECTS);
-		}
-		return false;
+		// se TRUE sono troppo vicini
+		return (Math.abs(in.distance(out)) < MIN_DISTANCE_BETWEEN_OBJECTS);
 	}
 
 	// funzione per disegnare l'oggetto
