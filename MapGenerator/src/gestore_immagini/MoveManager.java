@@ -17,6 +17,8 @@ public class MoveManager {
 	private JViewport viewport;
 
 	private JPanel imagebox;
+	
+	private boolean disable = false;
 
 	protected MoveManager(JPanel imagebox) {
 
@@ -24,17 +26,23 @@ public class MoveManager {
 		this.viewport = (JViewport) imagebox.getParent();
 	}
 
+	protected void disableMovement(boolean disable) {
+		this.disable = disable;
+	}
+	
 	protected void setOriginPoint(MouseEvent arg0) {
-		if (arg0 == null)
-			this.old_Position = null;
-		else
-			this.old_Position = arg0.getPoint();
+		if (!disable) {
+			if (arg0 == null)
+				this.old_Position = null;
+			else
+				this.old_Position = arg0.getPoint();
+		}
 	}
 
 	protected void moveImage(MouseEvent arg0) {
 
 		// verifico se è stato fatto effettivamente un "click" sull'immagine
-		if (old_Position != null) {
+		if ((old_Position != null) && !disable) {
 
 			// recupero il nuovo punto
 			Point new_Position = arg0.getPoint();

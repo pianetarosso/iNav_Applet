@@ -46,16 +46,10 @@ public class Marker extends DrawableMarker {
 	// MOUSE CLICK LISTENER per visualizzare un marker o cancellarlo
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
+		arg0.consume();
 		JPanelImmagine jpi = (JPanelImmagine) this.getParent();
-
-		if (jpi.type != JPanelImmagine.TYPE_DELETE) {
-			arg0.consume();
-			floor.editMarker(id);
-		} 
-		else {
-			arg0.consume();
-			floor.deleteMarkerJS(id);
-		}
+		jpi.stopAll(true);
+		jpi.editMarker(id);
 	}
 
 	// MOUSE DRAGGED LISTENER
@@ -92,7 +86,7 @@ public class Marker extends DrawableMarker {
 					}
 					else { 
 						m.setCoordinates(p_x, p_y, jpi.zoom);
-						floor.updateLocation(id, p_x, p_y);
+						jpi.updateMarkerLocation(id, p_x, p_y);
 					}
 
 					m.repaint();
