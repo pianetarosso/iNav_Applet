@@ -18,10 +18,12 @@ public class MapGenerator extends JApplet {
 	private Editor ed;
 	private Floor[] floors;
 	private CommunicationWithJS cwjs;
+	
+	private boolean debug = false;
 
 	public void start() {
 
-		cwjs = new CommunicationWithJS(this);
+		cwjs = new CommunicationWithJS(this, debug);
 		floors = cwjs.parseFloors(this.getCodeBase());
 
 		new LoadImages();

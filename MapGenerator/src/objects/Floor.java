@@ -1,5 +1,6 @@
 package objects;
 
+import gestore_immagini.JPanelImmagine;
 import gestore_immagini.ZoomManager;
 
 import java.awt.Point;
@@ -105,11 +106,21 @@ public class Floor {
 	public boolean testNear(Marker marker) {
 
 		for (Map.Entry<Integer, Marker> m : markers.entrySet()) 
-			if (marker.testNear(m.getValue())) 
+			if (marker.testNear(m.getValue()) && (marker.id != m.getValue().id)) 
 				return true;
 		return false;
 	}
 
+	public void setMarkerSelected(int id) {
+		for (Map.Entry<Integer, Marker> m : markers.entrySet())
+			m.getValue().setSelected(m.getValue().id == id); 
+	}
+	
+	public void stopAllMarkers(boolean stop) {
+		for (Map.Entry<Integer, Marker> m : markers.entrySet())
+			m.getValue().setStop(stop);
+	}
+	
 	public Marker addMarker(Point p, ZoomManager zoom) {
 
 		Marker new_m = new Marker(p, zoom, buildMarkerId(), this);
@@ -134,10 +145,13 @@ public class Floor {
 	}
 
 	// cancellazione del marker
-	public void deleteMarker(int id) {
+	public void deleteMarker(int id, JPanelImmagine jpi) {
+		//jpi.remove(markers.get(id));
+		System.out.println("delete!");
 		markers.get(id).setVisible(false);
 		markers.get(id).setEnabled(false);
 		markers.get(id).getParent().remove(markers.get(id));
 		markers.remove(id);
+		System.out.println("/delete!");
 	}
 }

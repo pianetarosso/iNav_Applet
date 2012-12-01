@@ -5,7 +5,6 @@ import gestore_immagini.JPanelImmagine;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
-import java.awt.Dimension;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -58,7 +57,7 @@ public class Editor {
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-		scrollImage.setPreferredSize(new Dimension(200, 200));
+		//scrollImage.setPreferredSize(new Dimension(200, 200));
 		scrollImage.setBackground(Color.BLACK);
 		immagine.addResizeListener(scrollImage);
 
@@ -70,17 +69,21 @@ public class Editor {
 	// OPERAZIONI DAL JS ESTERNO: ///////////////////////////////////////////////////////////////////
 	public void setFloor(int numero) {
 		immagine.setSelectedFloor(numero);
+		immagine.resetSelections();
 	}
 
 	public void setOperationType(String type) {
 		immagine.type = type;
+		immagine.resetSelections();
 	}
 	
 	public void operationComplete(boolean saved, int id, String type) {
+		System.out.println(saved+" "+id+" "+type);
 		if (saved)
 			immagine.stopAll(false);
 		else
 			immagine.delete(id, type);
+		immagine.resetSelections();
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////

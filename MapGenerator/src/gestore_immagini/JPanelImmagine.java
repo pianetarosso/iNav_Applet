@@ -41,8 +41,7 @@ public class JPanelImmagine extends JPanel {
 	public static final String TYPE_MARKER = "marker";
 	public static final String TYPE_PATH = "path";
 
-	// tipo di operazione che si effettua con il click (o trascinamento) del
-	// mouse
+	// tipo di operazione che si effettua con il click (o trascinamento) del mouse
 	public String type = "";
 
 	private String temp_type;
@@ -58,6 +57,7 @@ public class JPanelImmagine extends JPanel {
 	private Point mouseMovedOnPath = null;
 
 	private CommunicationWithJS cwjs;
+	private boolean debug = false;
 
 	// ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -74,6 +74,10 @@ public class JPanelImmagine extends JPanel {
 
 		this.cwjs = cwjs;
 		this.floors = floors;
+		this.debug = cwjs.debug;
+		
+		if (debug)
+			type = TYPE_MARKER;
 
 		// elimino il layout, per impostare gli oggetti con le coordinate
 		setLayout(null);
@@ -211,17 +215,19 @@ public class JPanelImmagine extends JPanel {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 
+				System.out.println("click");
+				System.out.println(type);
 				// RILEVAMENTO DEL CLICK DEL MOUSE
 				// SE È TIPO MARKER NE CREO UNO, SE È UNA PATH NE PROPONGO 
 				// LA CANCELLAZIONE
 				if (zoom.isPointOnImage(arg0.getPoint())) {
 					switch (type) {
 
-					case TYPE_MARKER:
-						setMarker(arg0.getPoint());
-						arg0.consume();
-					default: 
-						//	path.delete(arg0, jpi);
+						case TYPE_MARKER:
+							setMarker(arg0.getPoint());
+							arg0.consume();
+						default: 
+							//	path.delete(arg0, jpi);
 
 					}
 
@@ -281,6 +287,7 @@ public class JPanelImmagine extends JPanel {
 	// MARKER //
 	private void setMarker(Point p) {
 
+		System.out.println(selected_floor);
 		Marker new_m = selected_floor.addMarker(p, zoom);
 
 		if (new_m != null) { 
@@ -295,6 +302,8 @@ public class JPanelImmagine extends JPanel {
 			new_m.setVisible(true);
 			new_m.setEnabled(true);
 
+			selected_floor.setMarkerSelected(new_m.id);
+			
 			updatePanel();
 
 			cwjs.sendNewMarker(new_m, selected_floor.numero_di_piano);
@@ -304,25 +313,34 @@ public class JPanelImmagine extends JPanel {
 	// blocco movimento e creazione di punti, path, oltre allo zoom e al movimento
 	public void stopAll(boolean stop) {
 
-		if (!stop) {
+		if (!stop && !debug) {
 			zoom.enableZoom(true);
 			move.disableMovement(false);
 			type = temp_type;
 			temp_type = "";
 		}
-		else {
+		else if (!debug){
 			zoom.enableZoom(false);
 			move.disableMovement(true);
 			temp_type = type;
 			type = "";
 		}
+		selected_floor.stopAllMarkers(stop);
 	}
 
+	public void resetSelections() {
+		selected_floor.setMarkerSelected(Integer.MIN_VALUE);
+	}
+	
 	// Salvo il marker e abilito nuovamente le operazioni
 	public void delete(int id, String type) {
 		stopAll(false);
-		if (type == "marker")
-			selected_floor.deleteMarker(id);
+		System.out.println("HERE WE ARE!!!");
+		System.out.println(type);
+		System.out.println(type.contains("marker")) ;
+		if (type.contains("marker")) 
+			selected_floor.deleteMarker(id, this);
+		updatePanel();
 	}
 
 	// Mando il segnale per editare il marker sul JS

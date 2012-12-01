@@ -38,7 +38,7 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 	private static final Color NOT_SELECTED_COLOR = Color.black;
 
 	// diametro dell'oggetto
-	private int radius = 10;
+	private int diameter = 10;
 
 	// colore di default
 	private Color default_color;
@@ -52,10 +52,16 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 
 	// variabile per il trascinamento del marker
 	protected boolean moveMarker = false;
+	
+	// variabile per il "click"
+	protected boolean clicked = false;
+	
+	// variabile che abilita il click e il trascinamento di un marker
+	protected boolean stopped = false;
 
 	// COSTRUTTORE //
 	protected DrawableMarker(double x, double y, ZoomManager zoom,
-			Color default_color, int radius) {
+			Color default_color, int diameter) {
 
 		super();
 
@@ -63,7 +69,7 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 		setCoordinates(x, y, zoom);
 
 		// "salvo" il raggio e il colore
-		this.radius = radius;
+		this.diameter = diameter;
 		this.default_color = default_color;
 
 		// abilito i metodi di input
@@ -73,7 +79,7 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 		addMouseListener(this);
 
 		// imposto la dimensione predefinita
-		setPreferredSize(new Dimension(radius, radius));
+		setPreferredSize(new Dimension(diameter, diameter));
 
 		// imposto il colore di background
 		setBackground(TRANSPARENT_COLOR);
@@ -84,8 +90,8 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 
 	// funzione per impostare la POSIZIONE SULL'IMMAGINE
 	public void setBounds(ZoomManager zoom) {
-		setBounds(getScaledX(zoom) - radius / 2, getScaledY(zoom) - radius / 2,
-				radius, radius);
+		setBounds(getScaledX(zoom) - diameter / 2, getScaledY(zoom) - diameter / 2,
+				diameter, diameter);
 	}
 
 	// METODI VARI //
@@ -155,18 +161,21 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 			g.setColor(DRAGGING_COLOR);
 		else
 			g.setColor(default_color);
-		g.fillOval(0, 0, radius, radius);
+		
+		g.fillOval(0, 0, diameter, diameter);
 
 		// gestisco la selezione
-		if (mouseEntered)
+		if (clicked || (mouseEntered && !stopped))
 			g.setColor(SELECTED_COLOR);
 		else
 			g.setColor(NOT_SELECTED_COLOR);
-		g.drawOval(0, 0, radius - 1, radius - 1);
+		g.drawOval(0, 0, diameter - 1, diameter - 1);
 
 		// aggiorno la posizione dell'oggetto sulla mappa
 		JPanelImmagine ji = (JPanelImmagine) this.getParent();
 		this.setBounds(ji.zoom);
+		
+		this.repaint();
 	}
 
 	// ascoltatori del mouse
