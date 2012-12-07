@@ -7,13 +7,11 @@ import java.awt.Point;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
-import javax.swing.JButton;
 
 import drawable.Marker;
+import drawable.MarkerMap;
 import drawable.PathArrayList;
 
 public class Floor {
@@ -24,16 +22,14 @@ public class Floor {
 	private float bearing;
 	private int id;
 
-	private JButton floorButton;
 	private BufferedImage image = null;
 
-	private PathArrayList paths;
+	public PathArrayList paths;
 
-	private int markers_counter = 0;
+	
 
 	// struttura (id: marker)
-	private Map<Integer, Marker> markers;
-	public boolean floorSelected = false;
+	public MarkerMap markers;
 
 
 	public Floor(int numero_di_piano, URL link, float bearing, int id) {
@@ -41,46 +37,11 @@ public class Floor {
 		this.link = link;
 		this.bearing = bearing;
 		this.id = id;
-
-		paths = new PathArrayList();
-		markers = new HashMap<Integer, Marker>();
 	}
 
-
-
-	public void setVisible(boolean value) {
-
-		for (Map.Entry<Integer, Marker> m : markers.entrySet()) {
-
-			m.getValue().setVisible(value);
-			m.getValue().setEnabled(value);
-			m.getValue().repaint();
-		}
-	}
-
-	public void setButton(JButton floorButton) {
-		this.floorButton = floorButton;
-	}
-
-	public JButton getButton() {
-		return floorButton;
-	}
-
-	public PathArrayList getPaths() {
-		return paths;
-	}
-
-	public void enableButton() {
-		floorButton.setEnabled(true);
-		floorButton.setText(""+numero_di_piano);
-	}
-
-	public void performClick() {
-		floorButton.doClick();
-	}
-
-	public void setButtonSelected(boolean value) {
-		floorButton.setSelected(value);
+	public void initializePathsAndMarkers(JPanelImmagine jpi, ZoomManager zoom, CommunicationWithJS cwjs) {
+		markers = new MarkerMap(this, zoom, jpi, cwjs);
+		paths = new PathArrayList(jpi, markers, cwjs);
 	}
 
 	public void loadImage() throws IOException {
@@ -91,67 +52,94 @@ public class Floor {
 		return image;
 	}
 
-	public int getFloor() {
-		return numero_di_piano;
-	}
-
 	public String toString() {
 		return id + " "
 				+ numero_di_piano + " " 
 				+ bearing + " "
 				+ link.toString() + " ";
 	}
-
-	// verifico la vicinanza tra il marker in input e quelli presenti qui
-	public boolean testNear(Marker marker) {
-
-		for (Map.Entry<Integer, Marker> m : markers.entrySet()) 
-			if (marker.testNear(m.getValue()) && (marker.id != m.getValue().id)) 
-				return true;
-		return false;
-	}
-
-	public void setMarkerSelected(int id) {
-		for (Map.Entry<Integer, Marker> m : markers.entrySet())
-			m.getValue().setSelected(m.getValue().id == id); 
+	
+	
+	////////////////////////////////////////////////////////////////////////////////////////
+	// PATHS
+	
+	public PathArrayList getPaths() {
+		return paths;
 	}
 	
-	public void stopAllMarkers(boolean stop) {
-		for (Map.Entry<Integer, Marker> m : markers.entrySet())
-			m.getValue().setStop(stop);
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
+	
+	/////////////////////////////////////////////////////////////////////////////////////////
+	// MARKERS
+	
+	
+	// imposto la visibilità dei markers quando cambio il piano
+	public void setVisibleMarkers(int piano) {
+		markers.setVisibleMarkers(numero_di_piano == piano);
 	}
 	
-	public Marker addMarker(Point p, ZoomManager zoom) {
+	
+	// verifico la vicinanza tra un "marker" (dato dal suo centro e id) in input e i marker dell'array
+		public boolean testNear(Point marker, int id) {
+			return markers.testNear(marker, id);
+		}
+		
+		
+		// GESTORI DEL LISTENER //
+		public void removeMarkersListener() {
+			markers.removeMarkersListener();
+		}
+		
+		public void addMarkersListener() {
+			markers.addMarkersListener();
+		}
+		
+		///////////////////////////
+		
+		
+		public void setMarkerSelected(int id) {
+			markers.setMarkerSelected(id);
+		}
+		
+		public void stopAllMarkers(boolean stop) {
+			markers.stopAllMarkers(stop);
+		}
+		
+		
+		public Marker addMarker(Point p) {
+			return markers.addMarker(p);
+		}
 
-		Marker new_m = new Marker(p, zoom, buildMarkerId(), this);
+		// cancellazione del marker
+		public void deleteMarker(int id) {
+			markers.deleteMarker(id);
+		}
+		
+	/////////////////////////////////////////////////////////////////////////////////////////
 
-		if (!testNear(new_m)) {	
-			markers.put(buildMarkerId(), new_m);
-			markers_counter++;
-		}	
-		else return null;
-
-		return new_m;
+	public void enableFloorListener() {
+		markers.removeMarkersListener();
+		paths.addListeners();
 	}
 
-	// funzione per la costruzione dell'id dei marker
-	private int buildMarkerId() {
-		if (numero_di_piano == 0)
-			return markers_counter;
-		if (numero_di_piano > 0)
-			return numero_di_piano * 10000 + markers_counter;
-
-		return numero_di_piano * -10000 + markers_counter;
+	public void enableMarkerListener() {
+		paths.removeMouseListeners();
+		markers.addMarkersListener();
 	}
+	
 
-	// cancellazione del marker
-	public void deleteMarker(int id, JPanelImmagine jpi) {
-		//jpi.remove(markers.get(id));
-		System.out.println("delete!");
-		markers.get(id).setVisible(false);
-		markers.get(id).setEnabled(false);
-		markers.get(id).getParent().remove(markers.get(id));
-		markers.remove(id);
-		System.out.println("/delete!");
-	}
+	
+
+	
+
+	
+	
+	
+	
+	
 }

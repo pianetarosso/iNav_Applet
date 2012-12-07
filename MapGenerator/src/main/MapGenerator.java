@@ -19,7 +19,7 @@ public class MapGenerator extends JApplet {
 	private Floor[] floors;
 	private CommunicationWithJS cwjs;
 	
-	private boolean debug = false;
+	private boolean debug = true;
 
 	public void start() {
 

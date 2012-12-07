@@ -106,6 +106,11 @@ public class ZoomManager {
 		output[1] = (int) (y * zoom + offset_y);
 		return output;
 	}
+	
+	public Point getPanelPosition(Point p) {
+		int[] result = getPanelPosition(p.x, p.y);
+		return new Point(result[0], result[1]);
+	}
 
 	// funzione per il calcolo dell'offset per tenere l'immagine posizionata
 	// al centro del JPanel

@@ -1,6 +1,5 @@
 package drawable;
 
-import gestore_immagini.JPanelImmagine;
 import gestore_immagini.ZoomManager;
 
 import java.awt.BasicStroke;
@@ -12,66 +11,87 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
 import javax.swing.JComponent;
 import javax.swing.border.EmptyBorder;
 
-public abstract class DrawableMarker extends JComponent implements MouseListener {
+import objects.CustomPoint;
+
+public abstract class DrawableMarker extends JComponent implements MouseListener, MouseMotionListener {
 
 	private static final long serialVersionUID = -1934599507737914205L;
 
-	// distanza minima tra due markers
-	private static final int MIN_DISTANCE_BETWEEN_OBJECTS = 17;
 
-	// Colori dei markers:
-
+	// COLORI //////////////////////////////////////////////////////////////
+	
 	// Sfondo
 	private static final Color TRANSPARENT_COLOR = new Color(0, 0, 0, 0);
 
 	// Colore bordo durante passaggio sopra con il mouse
-	private static final Color SELECTED_COLOR = Color.green;
-
-	// colore semitrasparente quando viene trascinato
-	private static final Color DRAGGING_COLOR = new Color(255, 0, 0, 185);
+	private static final Color SELECTED_COLOR = Color.white;
 
 	// Colore bordo se il marker non è selezionato
 	private static final Color NOT_SELECTED_COLOR = Color.black;
+	
+	// colore del marker se la validatzione non è corretta
+	private static final Color VALIDATED_COLOR = Color.green;
+	
+	// colore del marker se la validazione non è valida
+	private static final Color NOT_VALIDATED_COLOR = Color.red;
+	
+	// valore di trasparenza da applicare quando trascinato
+	private static final int ALPHA = 50;
+	
+	/////////////////////////////////////////////////////////////////////////////
+	
 
+	// DIMENSIONI //////////////////////////////////////////////////////////////
+	
 	// diametro dell'oggetto
-	private int diameter = 10;
+	protected static final int DIAMETER = 10;
+	
+	// distanza minima tra due markers
+	private static final int MIN_DISTANCE_BETWEEN_OBJECTS = 17;
 
-	// colore di default
-	private Color default_color;
-
-	// posizione dell'oggetto
-	public int x;
-	public int y;
-
+	////////////////////////////////////////////////////////////////////////////
+	
+	
+	// GESTORI DEL MOUSE ///////////////////////////////////////////////////////
+	
 	// variabile per sapere se sull'oggetto è passato il mouse o meno
-	private boolean mouseEntered = false;
+		private boolean mouseEntered = false;
 
-	// variabile per il trascinamento del marker
-	protected boolean moveMarker = false;
+		// variabile per il trascinamento del marker
+		protected boolean moveMarker = false;
+		
+		// variabile per il "click"
+		protected boolean clicked = false;
+		
+		// variabile che abilita il click e il trascinamento di un marker
+		protected boolean stopped = false;
 	
-	// variabile per il "click"
-	protected boolean clicked = false;
+	///////////////////////////////////////////////////////////////////////////
+		
+		
+	// posizione dell'oggetto
+	public int x, y;
+	public ZoomManager zoom;
+
 	
-	// variabile che abilita il click e il trascinamento di un marker
-	protected boolean stopped = false;
 
 	// COSTRUTTORE //
-	protected DrawableMarker(double x, double y, ZoomManager zoom,
-			Color default_color, int diameter) {
-
+	protected DrawableMarker(double x, double y, ZoomManager zoom) {
+		
 		super();
 
+		this.zoom = zoom;
+		
 		// imposto le coordinate
-		setCoordinates(x, y, zoom);
-
-		// "salvo" il raggio e il colore
-		this.diameter = diameter;
-		this.default_color = default_color;
-
+		int[] coordinates = zoom.getRealPosition(x, y);
+		this.x = coordinates[0];
+		this.y = coordinates[1];
+		
 		// abilito i metodi di input
 		enableInputMethods(true);
 
@@ -79,7 +99,7 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 		addMouseListener(this);
 
 		// imposto la dimensione predefinita
-		setPreferredSize(new Dimension(diameter, diameter));
+		setPreferredSize(new Dimension(DIAMETER, DIAMETER));
 
 		// imposto il colore di background
 		setBackground(TRANSPARENT_COLOR);
@@ -87,61 +107,43 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 		// elimino il bordo predefinito
 		setBorder(new EmptyBorder(0, 0, 0, 0));
 	}
+	
+	
 
 	// funzione per impostare la POSIZIONE SULL'IMMAGINE
-	public void setBounds(ZoomManager zoom) {
-		setBounds(getScaledX(zoom) - diameter / 2, getScaledY(zoom) - diameter / 2,
-				diameter, diameter);
+	protected void setBounds() {
+		
+		int[] coordinates = zoom.getPanelPosition(x, y);
+		setBounds(coordinates[0] - DIAMETER / 2, coordinates[1] - DIAMETER / 2,
+				DIAMETER, DIAMETER);
 	}
 
 	// METODI VARI //
 
-	// imposto le coordinate in base allo zoom
-	protected void setCoordinates(double x, double y, ZoomManager zoom) {
-
-		// calcolo la posizione sull'immagine reale
-		int[] output = calculateCoordinates(x, y, zoom);
-
-		// "salvo" la posizione
-		this.x = output[0];
-		this.y = output[1];
+	
+	
+	public Point getScaledMarkerPosition() {
+		int[] out = zoom.getPanelPosition(x, y);
+		return new Point(out[0], out[1]);
+	}
+	
+	public Point getRealMarkerPosition() {
+		return new Point(x, y);
 	}
 
-	protected static int[] calculateCoordinates(double x, double y,
-			ZoomManager zoom) {
-		return zoom.getRealPosition(x, y);
-	}
-
-	protected static Point getScaledCoordinates(double x, double y,
-			ZoomManager zoom) {
-		int[] coordinates = calculateCoordinates(x, y, zoom);
-		return new Point(coordinates[0], coordinates[1]);
-	}
-
-	protected static Point getPanelCoordinates(double x, double y,
-			ZoomManager zoom) {
-		int[] coordinates = zoom.getPanelPosition(x, y);
-		return new Point(coordinates[0], coordinates[1]);
-	}
-
-	// recupero la x scalata secondo il nuovo zoom
-	protected int getScaledX(ZoomManager zoom) {
-		return zoom.getPanelPosition(x, y)[0];
-	}
-
-	// recupero la y scalata secondo il nuovo zoom
-	protected int getScaledY(ZoomManager zoom) {
-		return zoom.getPanelPosition(x, y)[1];
-	}
-
-	// testo se i punti sono troppo vicini tra loro
-	public boolean testNear(Marker m) {
-
-		Point in = new Point(x, y);
-		Point out = new Point(m.x, m.y);
+	// testo se i punti sono troppo vicini tra loro (nel contesto scalato, NON reale)
+	public boolean testNear(Point p) {
 
 		// se TRUE sono troppo vicini
-		return (Math.abs(in.distance(out)) < MIN_DISTANCE_BETWEEN_OBJECTS);
+		return CustomPoint.distance(getScaledMarkerPosition(), p) < MIN_DISTANCE_BETWEEN_OBJECTS;
+	}
+	
+	public void setCoordinates(Point p) {
+		int[] position = zoom.getRealPosition(p.x, p.y);
+		this.x = position[0];
+		this.y = position[1];
+		
+		this.repaint();
 	}
 
 	// funzione per disegnare l'oggetto
@@ -154,26 +156,41 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 		Graphics2D antiAlias = (Graphics2D) g;
 		antiAlias.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 				RenderingHints.VALUE_ANTIALIAS_ON);
+		
 		antiAlias.setStroke(new BasicStroke(1));
 
-		// disegno il cerchio della dimensione predisposta
-		if (moveMarker)
-			g.setColor(DRAGGING_COLOR);
-		else
-			g.setColor(default_color);
+		// QUI VA LA FUNZIONE PER LA VALIDAZIONE O SIMILIA///////////////////////
+		Color designedColor = VALIDATED_COLOR;
+		/////////////////////////////////////////////////////////////////////////
 		
-		g.fillOval(0, 0, diameter, diameter);
+		g.setColor(designedColor);
+		
+		// disegno il cerchio della dimensione predisposta
+		if (moveMarker) {
+			
+			// "costuisco" un colore uguale a quello designato, ma più trasparente
+			Color trans = new Color(
+					designedColor.getRed(),
+					designedColor.getGreen(),
+					designedColor.getBlue(), 
+					ALPHA);
+			
+			g.setColor(trans);
+		}
+			
+		// disegno il marker
+		g.fillOval(0, 0, DIAMETER, DIAMETER);
 
+		
 		// gestisco la selezione
 		if (clicked || (mouseEntered && !stopped))
 			g.setColor(SELECTED_COLOR);
 		else
 			g.setColor(NOT_SELECTED_COLOR);
-		g.drawOval(0, 0, diameter - 1, diameter - 1);
+		g.drawOval(0, 0, DIAMETER - 1, DIAMETER - 1);
 
 		// aggiorno la posizione dell'oggetto sulla mappa
-		JPanelImmagine ji = (JPanelImmagine) this.getParent();
-		this.setBounds(ji.zoom);
+		this.setBounds();
 		
 		this.repaint();
 	}
@@ -188,16 +205,18 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 	@Override
 	public void mouseExited(MouseEvent arg0) {
 		mouseEntered = false;
+		arg0.consume();
 	}
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
 		moveMarker = true;
+		arg0.consume();
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
 		moveMarker = false;
+		arg0.consume();
 	}
-
 }
