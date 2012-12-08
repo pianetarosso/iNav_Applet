@@ -129,6 +129,8 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 	
 	private void setJPIListeners() {
 
+		final MarkerMap mm = this;
+		
 		jpi.addMouseListener(ml = new MouseListener() {
 
 			@Override
@@ -158,8 +160,10 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 						cwjs.sendNewMarker(new_m, floor.numero_di_piano);
 					}
 					
-					if(jpi.debug && (floor.markers.size() >= 6))
+					if(jpi.debug && (floor.markers.size() >= 4)) {
 						jpi.setDrawOperationType(JPanelImmagine.TYPE_PATH);
+						mm.get(0).valido = true;
+					}
 				}
 			}
 

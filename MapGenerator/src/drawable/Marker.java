@@ -40,6 +40,16 @@ public class Marker extends DrawableMarker {
 		// abilito i listener per il trascinamento
 		addMouseMotionListener(this);
 	}
+	
+	// imposta il marker come ingresso/scala/ascensore
+	public void setAccessElevatorStair() {
+		this.valido = true;
+	}
+	
+	// valore per la validazione "in corsa"
+	public void setValidated(boolean value) {
+		this.validated = value;
+	}
 
 	public void setSelected(boolean selected) {
 		this.clicked = selected;

@@ -39,6 +39,7 @@ public class Path {
 	public CustomPoint A;
 
 	ZoomManager zoom;
+	public boolean validated = false;
 
 
 	// costruttore
@@ -78,14 +79,22 @@ public class Path {
 		g2.draw(line);
 
 		// disegno della linea
-		g2.setColor(VALIDATED_COLOR);	
+		if (validated)
+			g2.setColor(VALIDATED_COLOR);
+		else
+			g2.setColor(NOT_VALIDATED_COLOR);	
 		g2.setStroke(new BasicStroke(SPESSORE));
 		g2.draw(line);
 		
 		///////////////////////////////////////////////////////////
 	}
 
-
+	public void resetValidation() {
+		P.resetValidation();
+		A.resetValidation();
+		validated = false;
+	}
+	
 	public Point getScaledP() {
 		return zoom.getPanelPosition(P);
 	}

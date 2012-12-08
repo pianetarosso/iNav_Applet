@@ -51,8 +51,45 @@ public class CustomPoint extends Point{
 	}
 
 
+	public void resetValidation() {
+		if (marker != null)
+			marker.validated = false;
+		
+		if (path != null)
+			path.validated = false;
+	}
+	
+	public boolean isValid() {
+		
+		if (marker != null)
+			return (marker.validated || marker.valido);
+		
+		if (path != null)
+			return (path.validated);
+		
+		return false;
+	}
 
+	public void validate() {
+		if (marker != null)
+			marker.validated = true;
+		
+		if(path != null)
+			path.validated = true;
+	}
 
+	@Override
+	public String toString() {
+		
+		String out ="(x:"+x+", y:"+y+"); ";
+		
+		if (marker!=null)
+			out += "marker: (x:"+marker.x+", y:"+marker.y+", valido:"+marker.valido+", validated:"+marker.validated+"); ";
+		if(path!=null)
+			out += "path: (validated:"+path.validated+"); ";
+		
+		return out;
+	}
 	// date le coordinate restituisco un CustomPoint con tanto di marker o Path vicina
 	public static CustomPoint FindPoint(int x, int y, PathArrayList paths, Map<Integer, Marker> markers) {
 		ZoomManager zoom = paths.zoom;
@@ -166,24 +203,24 @@ public class CustomPoint extends Point{
 
 			double Ax = (double)(P.y - A.y) / (double)(P.x - A.x);
 			double B = (double)(A.y * P.x  -  P.y * A.x) / (double)(P.x - A.x);
-
+			//System.out.println("MIN_DISTANCE:"+(MIN_DISTANCE / zoom.zoom));
 			// verifico quale dei due campi è più esteso
 			if (values_x >= values_y) {
-				System.out.println("X");
+				//System.out.println("X");
 				// In questo caso il campo più esteso è x
 
 				// calcolo il fattore di incremento 
 				int incremento = 1;
 				if (P.x > A.x)
 					incremento = -1;
-
+				//System.out.println("Incremento:"+incremento);
 				// scansiono tutta la striscia, nel caso la distanza calcolata aumenti anziché
 				// diminuire interrompo il ciclo
-
-				for (int x = P.x; x <= A.x; x += incremento) {
+				//System.out.println("x:"+P.x+", A.x:"+A.x);
+				for (int x = P.x; x != A.x; x += incremento) {
 					int y = (int)(x * Ax + B);
 					int t_distance = distance (new Point(x,y), p);
-
+					//System.out.println("t_distance:"+t_distance+", distance:"+distance);
 					if (t_distance <= distance) {
 						distance = t_distance;
 						
@@ -205,14 +242,14 @@ public class CustomPoint extends Point{
 				// scansiono tutta la striscia, nel caso la distanza calcolata aumenti anziché
 				// diminuire interrompo il ciclo
 
-				for (int y = P.y; y <= A.y; y += incremento) {
+				for (int y = P.y; y != A.y; y += incremento) {
 					int x = (int)((y - B) / Ax);
 					int t_distance = distance (new Point(x,y), p);
 
 					if (t_distance <= distance) {
 						distance = t_distance;
 						
-						if	(distance <= MIN_DISTANCE)
+						if	(distance <= MIN_DISTANCE / zoom.zoom)
 							out = new CustomPoint(x, y, path, zoom);
 					}
 					else

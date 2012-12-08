@@ -77,7 +77,18 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 	// posizione dell'oggetto
 	public int x, y;
 	public ZoomManager zoom;
+	
+	
+	// VALIDAZIONE ///////////////////////////////////////////////////////
+	
+	// è valido SEMPRE => E' un ascensore, una scala o un ingresso
+	public boolean valido = false;
+	
+	// valore acquisito con la connessione di più path
+	public boolean validated = false;
 
+	///////////////////////////////////////////////////////////////////////
+	
 	
 
 	// COSTRUTTORE //
@@ -158,10 +169,12 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 				RenderingHints.VALUE_ANTIALIAS_ON);
 		
 		antiAlias.setStroke(new BasicStroke(1));
-
-		// QUI VA LA FUNZIONE PER LA VALIDAZIONE O SIMILIA///////////////////////
-		Color designedColor = VALIDATED_COLOR;
-		/////////////////////////////////////////////////////////////////////////
+		
+		
+		Color designedColor = NOT_VALIDATED_COLOR;
+		
+		if (valido || validated)
+			designedColor = VALIDATED_COLOR;
 		
 		g.setColor(designedColor);
 		
