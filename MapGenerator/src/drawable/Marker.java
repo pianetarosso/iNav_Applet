@@ -119,6 +119,7 @@ public class Marker extends DrawableMarker {
 				else { 
 					this.setCoordinates(p);
 					cwjs.updateLocation(id, p.x, p.y);
+					jpi.isValid();
 				}
 			}
 		}

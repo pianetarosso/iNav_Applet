@@ -24,8 +24,11 @@ public class CommunicationWithJS {
 	private static final String ENABLE_JS_INPUT = "enableInputs()";
 	private static final String UPDATE_POSITION = "updatePosition";
 
+	private static final String DELETE_PATH = "deletePath()";
+	private static final String IS_VALID = "isValid";
+
 	private JSObject window = null;
-	
+
 	// funzione che chiamo per abilitare il debug in eclipse
 	public boolean debug = true;
 
@@ -49,8 +52,8 @@ public class CommunicationWithJS {
 			}
 			return fts;
 		}
-		
-		
+
+
 		JSObject jsonFloors = (JSObject) window.eval(GET_FLOORS);
 
 		int i=0;
@@ -122,4 +125,28 @@ public class CommunicationWithJS {
 			window.call(UPDATE_POSITION, out);
 	}
 
+	// propongo la cancellazione di una path (unica operazione consentita su questa
+	public void deletePath() {
+		if (debug)
+			System.out.println("deletePath:"+true);
+		else
+			window.eval(DELETE_PATH);
+	}
+
+	// restituisco la validità di tutti i piani
+	public void isValid(boolean value) {
+		// true => 1
+		// false => 0
+
+		Object[] out;
+		if (value)
+			out = new Integer[] {1};
+		else
+			out = new Integer[] {0};
+
+		if (debug)
+			System.out.println("isValid:"+out);
+		else
+			window.call(IS_VALID, out);
+	}
 }

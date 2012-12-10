@@ -4,18 +4,15 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.Line2D;
 
 import javax.swing.JPanel;
 
 import objects.CommunicationWithJS;
 import objects.Floor;
-import drawable.Path;
 
 public class JPanelImmagine extends JPanel implements MouseListener, MouseMotionListener {
 
@@ -52,10 +49,6 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 	public ZoomManager zoom;
 	private MoveManager move;
 
-	private Path currentPath = null;
-	private Point mouseMovedOnPath = null;
-
-	private CommunicationWithJS cwjs;
 	public boolean debug = false;
 
 
@@ -66,7 +59,6 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 	// COSTRUTTORE
 	public JPanelImmagine(Floor[] floors, CommunicationWithJS cwjs) {
 
-		this.cwjs = cwjs;
 		this.floors = floors;
 		this.debug = cwjs.debug;
 
@@ -92,27 +84,25 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 		zoom.changeSizeListener(cp);
 	}
 
-	
-
-	
-	
-
 
 	// Disegno del JPanel
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
-		
+
 		g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
 				RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
 		if (selected_floor != null) {
 			// disegno l'immagine scalata secondo il fattore di zoom
 			g2.drawRenderedImage(selected_floor.getImage(), zoom.scaleBufferedImage());
-			
+
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+					RenderingHints.VALUE_ANTIALIAS_ON);
+
 			selected_floor.paths.draw(g2);
-			
+
 			updatePanel();
 		}
 	}
@@ -139,8 +129,15 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 			type = "";
 		}
 		selected_floor.stopAllMarkers(stop);
+		selected_floor.paths.stop = stop;
+		
+		if (!stop)
+			selected_floor.paths.validate();
 	}
 
+	
+	
+	// COMUNICAZIONE //////////////////////////////////////////////////////////////
 
 
 	// Imposto una nuova immagine nel panel, e calcolo lo zoom per visualizzare
@@ -164,7 +161,7 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 
 		// aggiorno il panel
 		updatePanel();
-		
+
 		if (debug)
 			setDrawOperationType(TYPE_MARKER);
 	}
@@ -173,6 +170,7 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 	// imposto il "metodo" di disegno selezionato
 	public void setDrawOperationType(String type) {
 		this.type = type;
+		System.out.println(type);
 		if (type == TYPE_MARKER) {
 			selected_floor.markers.addMarkersListener();
 			selected_floor.paths.removeMouseListeners();
@@ -185,45 +183,44 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 	}
 
 
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
-
-public void delete(int id, String type) {
-	selected_floor.markers.deleteMarker(id);
-}
-	
-
-
-
-	
-
-	
-	
-
+	// Cancellazione di un marker o path (funzione chiamata dal JS)
+	public void delete(int id, String type) {
+		if (type.contains("marker"))
+			selected_floor.markers.deleteMarker(id);
+		else
+			selected_floor.paths.delete();
 		
-
-
-
-
-
-	public void resetSelections() {
-		selected_floor.setMarkerSelected(Integer.MIN_VALUE);
+		selected_floor.paths.validate();
+		
+		updatePanel();
 	}
 
+	// elimino le selezioni dei marker e delle path (chiamata dal JS)
+	public void resetSelections() {
+		selected_floor.setMarkerSelected(Integer.MIN_VALUE);
+		selected_floor.paths.selectedPath = null;
+		updatePanel();
+	}
 	
-	
-	
+	// funzione che restituisce se i piani sono "validi" o no
+	public boolean updateValidation() {
 
-	
+		if (floors.length < 1)
+			return false;
+		
+		for (Floor f : floors) 
+			if (!(f.paths.isValid() && f.markers.isValid()))
+				return false;
+			
+		
+		return true;
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////
 
 
 
+	// stabilisco su che cosa sto operando
 	public boolean isMarkerType() {
 		return type == TYPE_MARKER;
 	}
@@ -236,30 +233,6 @@ public void delete(int id, String type) {
 	public void mouseDragged(MouseEvent arg0) {
 		if (zoom.isPointOnImage(arg0.getPoint()))
 			move.moveImage(arg0);
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseClicked(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -281,9 +254,13 @@ public void delete(int id, String type) {
 		}
 	}
 
-
-
-
-
+	@Override
+	public void mouseMoved(MouseEvent arg0) {}
+	@Override
+	public void mouseClicked(MouseEvent arg0) {}
+	@Override
+	public void mouseEntered(MouseEvent arg0) {}
+	@Override
+	public void mouseExited(MouseEvent arg0) {}
 
 }

@@ -40,6 +40,18 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 	}
 
 
+	// restituisco la validità complessiva dei marker
+	public boolean isValid() {
+		
+		if (this.size() < 1)
+			return false;
+		
+		for(Map.Entry<Integer, Marker> m : this.entrySet())
+			if (!(m.getValue().validated || m.getValue().valido))
+				return false;
+			
+		return true;
+	}
 
 	// imposto la visibilità dei markers quando cambio il piano
 	public void setVisibleMarkers(boolean value) {
@@ -101,6 +113,8 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 		else 
 			return null;
 
+		jpi.isValid();
+		
 		return new_m;
 	}
 
@@ -121,6 +135,8 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 		m.setEnabled(false);
 		m.getParent().remove(m);
 		this.remove(id);
+		m = null;
+		jpi.isValid();
 	}
 
 	private void removeJPIListeners() {

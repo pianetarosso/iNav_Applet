@@ -42,6 +42,7 @@ public class CustomPoint extends Point{
 		this.zoom = zoom;
 	}
 
+	// restituisco l'immagine sul pannello
 	public Point getPanelPosition() {
 		return zoom.getPanelPosition(new Point(x,y));
 	}
@@ -61,8 +62,13 @@ public class CustomPoint extends Point{
 	
 	public boolean isValid() {
 		
-		if (marker != null)
-			return (marker.validated || marker.valido);
+		if (marker != null) {
+			if ((marker.x == x) && (marker.y == y))
+				return (marker.validated || marker.valido);
+			else 
+				this.marker = null;
+		}
+			
 		
 		if (path != null)
 			return (path.validated);
@@ -77,19 +83,7 @@ public class CustomPoint extends Point{
 		if(path != null)
 			path.validated = true;
 	}
-
-	@Override
-	public String toString() {
-		
-		String out ="(x:"+x+", y:"+y+"); ";
-		
-		if (marker!=null)
-			out += "marker: (x:"+marker.x+", y:"+marker.y+", valido:"+marker.valido+", validated:"+marker.validated+"); ";
-		if(path!=null)
-			out += "path: (validated:"+path.validated+"); ";
-		
-		return out;
-	}
+	
 	// date le coordinate restituisco un CustomPoint con tanto di marker o Path vicina
 	public static CustomPoint FindPoint(int x, int y, PathArrayList paths, Map<Integer, Marker> markers) {
 		ZoomManager zoom = paths.zoom;
@@ -98,30 +92,29 @@ public class CustomPoint extends Point{
 
 		Marker mfound = findMarker(test_point, markers);
 
-		System.out.println("markers");
 		if (mfound != null)
 			return new CustomPoint(mfound);
 
-		else {//System.out.println("paths");
-			return findPath(test_point, paths, zoom);}
+		return findPath(test_point, paths, zoom);
 	}
 
 
+	// trova il marker più vicino al punto cliccato
 	private static Marker findMarker(Point test_point, Map<Integer, Marker> markers) {
 		for(Map.Entry<Integer, Marker> m : markers.entrySet()) {
 
 			Point m_point = m.getValue().getScaledMarkerPosition();
-
+			
 			if (distance(m_point, test_point) <= MIN_DISTANCE) 
 				return m.getValue();
 		}
 		return null;
 	}
 
+	// trova il punto su di una delle tante path più vicino a quello cliccato
 	private static CustomPoint findPath(Point test_point, PathArrayList paths, ZoomManager zoom) {
 
 		int distance = Integer.MAX_VALUE;
-
 		CustomPoint out = null;
 
 		
@@ -129,34 +122,34 @@ public class CustomPoint extends Point{
 
 			// verifico prima di tutto la distanza del punto dai capi della path in esame, 
 			// se non funziona procedo a scansionare tutta la lunghezza della retta
-
 			Point partenza = p.getScaledP();
 			int distanceFromP = distance(partenza, test_point);
 
-			if ((distanceFromP <= MIN_DISTANCE) && (distanceFromP < distance)) {
-				out = new CustomPoint(p.A.x, p.A.y, p, zoom);
-				distance = distanceFromP;
+			if ((distanceFromP <= MIN_DISTANCE ) && (distanceFromP < distance)) {
+				//out = 
+				return new CustomPoint(p.A.x, p.A.y, p, zoom);
+				//distance = distanceFromP;
 			}
 
 			Point arrivo = p.getScaledA();
 			int distanceFromA = distance(arrivo, test_point);
 
-			if ((distanceFromA <= MIN_DISTANCE) && (distanceFromA < distance)) {
-				out = new CustomPoint(p.A.x, p.A.y, p, zoom);
-				distance = distanceFromA;
+			if ((distanceFromA <= MIN_DISTANCE ) && (distanceFromA < distance)) {
+				//out = 
+				return new CustomPoint(p.A.x, p.A.y, p, zoom);
+				//distance = distanceFromA;
 			}
 
 			// se non mi trovo in nessuno dei due casi precedenti, costruisco la retta passante per i
 			// due punti della path, e faccio una scansione per vedere se in "qualche punto" mi va bene
-
 			CustomPoint out_t = findNearestLinePoint(p, test_point, zoom);
-			System.out.println("OUT_T: "+out_t);
+		
 			// cerco la retta con la minore distanza dal punto dato
 			if (out_t != null) 
 				if (distance(test_point, out_t.getPanelPosition() ) < distance)
 					out = out_t;
 		}
-		System.out.println("new out: "+out);
+	
 		if (out == null)
 			out = new CustomPoint(test_point.x, test_point.y, zoom);
 
@@ -175,8 +168,9 @@ public class CustomPoint extends Point{
 
 		CustomPoint out = null;
 
-		Point P = path.P;//.getScaledP();
-		Point A = path.A; //getScaledA();
+		// lavoro con i valori di scala dell'immagine REALE
+		Point P = path.P;
+		Point A = path.A; 
 		
 		int[] p_t = zoom.getRealPosition(p.x, p.y);
 		p = new Point(p_t[0], p_t[1]);
@@ -200,27 +194,24 @@ public class CustomPoint extends Point{
 		else {
 
 			// la retta è una NORMALE FUNZIONE y = Ax + B
-
 			double Ax = (double)(P.y - A.y) / (double)(P.x - A.x);
 			double B = (double)(A.y * P.x  -  P.y * A.x) / (double)(P.x - A.x);
-			//System.out.println("MIN_DISTANCE:"+(MIN_DISTANCE / zoom.zoom));
+			
 			// verifico quale dei due campi è più esteso
 			if (values_x >= values_y) {
-				//System.out.println("X");
 				// In questo caso il campo più esteso è x
 
 				// calcolo il fattore di incremento 
 				int incremento = 1;
 				if (P.x > A.x)
 					incremento = -1;
-				//System.out.println("Incremento:"+incremento);
+				
 				// scansiono tutta la striscia, nel caso la distanza calcolata aumenti anziché
 				// diminuire interrompo il ciclo
-				//System.out.println("x:"+P.x+", A.x:"+A.x);
 				for (int x = P.x; x != A.x; x += incremento) {
 					int y = (int)(x * Ax + B);
 					int t_distance = distance (new Point(x,y), p);
-					//System.out.println("t_distance:"+t_distance+", distance:"+distance);
+					
 					if (t_distance <= distance) {
 						distance = t_distance;
 						
@@ -276,5 +267,18 @@ public class CustomPoint extends Point{
 	// verifico se è presente il marker o la path
 	public boolean isMarkerOrPath() {
 		return (marker != null) || (path != null);
+	}
+	
+	@Override
+	public String toString() {
+		
+		String out ="(x:"+x+", y:"+y+"); ";
+		
+		if (marker!=null)
+			out += "marker: (x:"+marker.x+", y:"+marker.y+", valido:"+marker.valido+", validated:"+marker.validated+"); ";
+		if(path!=null)
+			out += "path: (validated:"+path.validated+"); ";
+		
+		return out;
 	}
 }
