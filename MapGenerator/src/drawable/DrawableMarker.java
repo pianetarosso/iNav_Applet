@@ -122,7 +122,7 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 	
 
 	// funzione per impostare la POSIZIONE SULL'IMMAGINE
-	protected void setBounds() {
+	public void setBounds() {
 		
 		int[] coordinates = zoom.getPanelPosition(x, y);
 		setBounds(coordinates[0] - DIAMETER / 2, coordinates[1] - DIAMETER / 2,
@@ -179,7 +179,7 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 		g.setColor(designedColor);
 		
 		// disegno il cerchio della dimensione predisposta
-		if (moveMarker) {
+		if (moveMarker && !stopped) {
 			
 			// "costuisco" un colore uguale a quello designato, ma più trasparente
 			Color trans = new Color(
@@ -218,18 +218,6 @@ public abstract class DrawableMarker extends JComponent implements MouseListener
 	@Override
 	public void mouseExited(MouseEvent arg0) {
 		mouseEntered = false;
-		arg0.consume();
-	}
-
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-		moveMarker = true;
-		arg0.consume();
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-		moveMarker = false;
 		arg0.consume();
 	}
 }

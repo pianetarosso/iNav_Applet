@@ -25,9 +25,7 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 	private ZoomManager zoom;
 	private JPanelImmagine jpi;
 
-	private CommunicationWithJS cwjs;
-
-	private MouseListener ml;
+	public CommunicationWithJS cwjs;
 
 
 	public MarkerMap(Floor floor, ZoomManager zoom, JPanelImmagine jpi, CommunicationWithJS cwjs) {
@@ -35,21 +33,21 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 		this.floor = floor;
 		this.jpi = jpi;
 		this.zoom = zoom;
-		
+
 		this.cwjs = cwjs;
 	}
 
 
 	// restituisco la validità complessiva dei marker
 	public boolean isValid() {
-		
+
 		if (this.size() < 1)
 			return false;
-		
+
 		for(Map.Entry<Integer, Marker> m : this.entrySet())
 			if (!(m.getValue().validated || m.getValue().valido))
 				return false;
-			
+
 		return true;
 	}
 
@@ -75,22 +73,6 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 	}
 
 
-	// GESTORI DEL LISTENER //
-	public void removeMarkersListener() {
-		removeJPIListeners();
-		for (Map.Entry<Integer, Marker> m : this.entrySet()) 
-			m.getValue().stopListeners();
-	}
-
-	public void addMarkersListener() {
-		setJPIListeners();
-		for (Map.Entry<Integer, Marker> m : this.entrySet()) 
-			m.getValue().startListeners();
-	}
-
-	///////////////////////////
-
-
 	public void setMarkerSelected(int id) {
 		for (Map.Entry<Integer, Marker> m : this.entrySet())
 			m.getValue().setSelected(m.getValue().id == id); 
@@ -114,7 +96,7 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 			return null;
 
 		jpi.isValid();
-		
+
 		return new_m;
 	}
 
@@ -139,59 +121,6 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 		jpi.isValid();
 	}
 
-	private void removeJPIListeners() {
-		jpi.removeMouseListener(ml);
-	}
-	
-	private void setJPIListeners() {
 
-		final MarkerMap mm = this;
-		
-		jpi.addMouseListener(ml = new MouseListener() {
-
-			@Override
-			public void mouseClicked(MouseEvent arg0) {
-				if (zoom.isPointOnImage(arg0.getPoint())) {
-
-					Marker new_m = addMarker(arg0.getPoint());
-
-					if (new_m != null) { 
-						
-						if(!cwjs.debug)
-							jpi.stopAll(true);
-
-						// aggiungo l'oggetto al JPanel principale
-						jpi.add(new_m);
-
-						// imposto la posizione dell'oggetto sul JPanel
-						new_m.setBounds();
-
-						new_m.setVisible(true);
-						new_m.setEnabled(true);
-
-						setMarkerSelected(new_m.id);
-
-						jpi.updatePanel();
-
-						cwjs.sendNewMarker(new_m, floor.numero_di_piano);
-					}
-					
-					if(jpi.debug && (floor.markers.size() >= 4)) {
-						jpi.setDrawOperationType(JPanelImmagine.TYPE_PATH);
-						mm.get(0).valido = true;
-					}
-				}
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent arg0) {}
-			@Override
-			public void mouseExited(MouseEvent arg0) {}
-			@Override
-			public void mousePressed(MouseEvent arg0) {}
-			@Override
-			public void mouseReleased(MouseEvent arg0) {}
-		});
-	}
 
 }

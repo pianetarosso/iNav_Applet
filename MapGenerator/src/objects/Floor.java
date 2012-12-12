@@ -41,7 +41,7 @@ public class Floor {
 
 	public void initializePathsAndMarkers(JPanelImmagine jpi, ZoomManager zoom, CommunicationWithJS cwjs) {
 		markers = new MarkerMap(this, zoom, jpi, cwjs);
-		paths = new PathArrayList(jpi, markers, cwjs);
+		paths = new PathArrayList(jpi, cwjs);
 	}
 
 	public void loadImage() throws IOException {
@@ -90,24 +90,11 @@ public class Floor {
 		}
 		
 		
-		// GESTORI DEL LISTENER //
-		public void removeMarkersListener() {
-			markers.removeMarkersListener();
-		}
-		
-		public void addMarkersListener() {
-			markers.addMarkersListener();
-		}
-		
 		///////////////////////////
 		
 		
 		public void setMarkerSelected(int id) {
 			markers.setMarkerSelected(id);
-		}
-		
-		public void stopAllMarkers(boolean stop) {
-			markers.stopAllMarkers(stop);
 		}
 		
 		
@@ -121,25 +108,5 @@ public class Floor {
 		}
 		
 	/////////////////////////////////////////////////////////////////////////////////////////
-
-	public void enableFloorListener() {
-		markers.removeMarkersListener();
-		paths.addListeners();
-	}
-
-	public void enableMarkerListener() {
-		paths.removeMouseListeners();
-		markers.addMarkersListener();
-	}
-	
-
-	
-
-	
-
-	
-	
-	
-	
 	
 }

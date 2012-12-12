@@ -5,9 +5,6 @@ import gestore_immagini.ZoomManager;
 
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -20,28 +17,21 @@ public class PathArrayList extends ArrayList<Path> {
 
 	private JPanelImmagine jpi;
 	public ZoomManager zoom;
-	private Map<Integer, Marker> markers;
 
-	private Path drawingPath = null;
+	public Path drawingPath = null;
 	public Path selectedPath = null;
 
-	private MouseListener ml = null;
-	private MouseMotionListener mml = null;
-
-	public boolean stop = false;
-
-	private CommunicationWithJS cwjs;
+	public CommunicationWithJS cwjs;
 
 
 
 	// costruttore
-	public PathArrayList(JPanelImmagine jpi, Map<Integer, Marker> markers, CommunicationWithJS cwjs) {
+	public PathArrayList(JPanelImmagine jpi, CommunicationWithJS cwjs) {
 		super();
 
 		this.jpi = jpi;
 		this.zoom = jpi.zoom;
-		this.markers = markers;
-
+		
 		this.cwjs = cwjs;
 	}
 
@@ -149,86 +139,7 @@ public class PathArrayList extends ArrayList<Path> {
 		return counter;
 	}
 
-	// LISTENERS ////
-
-	public void addListeners() {
-
-		final PathArrayList pal = this;
-
-		jpi.addMouseListener(ml = new MouseListener() {
-
-
-			@Override
-			public void mouseClicked(MouseEvent arg0) {
-
-				if (!stop) {
-					// individuo la path più vicina cliccata
-					Point point = arg0.getPoint();
-					drawingPath = null;
-					selectedPath = CustomPoint.findNearestPath(point, pal, zoom);
-
-					if (selectedPath != null) {
-						cwjs.deletePath();
-						jpi.stopAll(true);
-					}
-					jpi.updatePanel();
-					arg0.consume();
-				}
-			}
-
-			@Override
-			public void mousePressed(MouseEvent arg0) {
-				// inizio il disegno di una path
-				if ((drawingPath == null) && !stop) {
-					addPath(arg0.getPoint(), markers);
-					selectedPath = null;
-					arg0.consume();
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent arg0) {
-				// termino il disegno di una path
-				if ((drawingPath != null) && !stop) {
-					saveNewPath(arg0.getPoint(), markers);
-					arg0.consume();
-				}
-			}
-
-
-			@Override
-			public void mouseEntered(MouseEvent arg0) {}
-			@Override
-			public void mouseExited(MouseEvent arg0) {}
-		});
-
-
-		jpi.addMouseMotionListener(mml = new MouseMotionListener() {
-
-			@Override
-			public void mouseDragged(MouseEvent arg0) {
-
-				// continuo a disegnare una path
-				if ((drawingPath != null) && (zoom.isPointOnImage(arg0.getPoint()) && !stop))
-					drawingPath(arg0.getPoint());
-				else
-					drawingPath = null;
-			}
-
-			@Override
-			public void mouseMoved(MouseEvent arg0) {}
-		});
-	}
-
-	// rimuovo i listeners
-	public void removeMouseListeners() {
-		if (ml != null)
-			jpi.removeMouseListener(ml);
-
-		if (mml != null)
-			jpi.removeMouseMotionListener(mml);
-	}
-
+	
 
 	// cancello una path dall'array
 	public void delete() {

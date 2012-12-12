@@ -75,15 +75,18 @@ public class Marker extends DrawableMarker {
 
 	@Override
 	public void mouseClicked(MouseEvent arg0) {
-		arg0.consume();
+		
 
 		JPanelImmagine jpi = (JPanelImmagine) this.getParent();
 		if (!stopped && jpi.isMarkerType()) {
-			System.out.println("Marker click");
+			
 			jpi.stopAll(true);
 			cwjs.editMarker(id);
 			floor.setMarkerSelected(id);
+			arg0.consume();
 		}
+		else
+			jpi.mouseClicked(arg0);
 	}
 
 
@@ -95,7 +98,7 @@ public class Marker extends DrawableMarker {
 	public void mouseDragged(MouseEvent arg0) {
 
 		JPanelImmagine jpi = (JPanelImmagine) this.getParent();
-		System.out.println("Marker dragged: "+ stopped +", "+ jpi.isMarkerType());
+		
 		if (!stopped && jpi.isMarkerType()) {
 
 
@@ -108,9 +111,6 @@ public class Marker extends DrawableMarker {
 			p.x = p.x + old_marker_s.x - DIAMETER / 2;
 			p.y = p.y + old_marker_s.y - DIAMETER / 2;
 
-			System.out.println("Marker dragged: "+ arg0.getPoint().toString());
-			System.out.println("Marker dragged new Coord: "+ p.toString());
-			
 			if (moveMarker && zoom.isPointOnImage(p)) {
 
 
@@ -122,9 +122,66 @@ public class Marker extends DrawableMarker {
 					jpi.isValid();
 				}
 			}
+			arg0.consume();
+		}
+		else {
+			Point p = arg0.getPoint();
+			
+			Point old_marker_s = zoom.getPanelPosition(new Point(x, y));
+
+			// correggo le coordinate, quelle lette infatti sono in relazione 
+			// alla posizione in alto a sx del marker
+			p.x = p.x + old_marker_s.x - DIAMETER / 2;
+			p.y = p.y + old_marker_s.y - DIAMETER / 2;
+			
+			MouseEvent me = new MouseEvent(arg0.getComponent(), arg0.getID(), arg0.getWhen(), arg0.getModifiers(), p.x, p.y, arg0.getClickCount(), false);
+			
+			jpi.mouseDragged(me);
+		}
+			
+	}
+
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		if (!stopped) {
+			moveMarker = true;
+			arg0.consume();
+		}
+		else {
+			JPanelImmagine jpi = (JPanelImmagine) this.getParent();
+			// MouseEvent(Component source, int id, long when, int modifiers, int x, int y, int clickCount, boolean popupTrigger)
+			Point coord = this.getScaledMarkerPosition();
+			MouseEvent me = new MouseEvent(arg0.getComponent(), arg0.getID(), arg0.getWhen(), arg0.getModifiers(), coord.x, coord.y, arg0.getClickCount(), false);
+			jpi.mousePressed(me);
 		}
 	}
 
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		
+		if (!stopped) {
+			moveMarker = false;
+			arg0.consume();
+		}
+		else {
+			JPanelImmagine jpi = (JPanelImmagine) this.getParent();
+			Point p = arg0.getPoint();
+			
+			Point old_marker_s = zoom.getPanelPosition(new Point(x, y));
+
+			// correggo le coordinate, quelle lette infatti sono in relazione 
+			// alla posizione in alto a sx del marker
+			p.x = p.x + old_marker_s.x - DIAMETER / 2;
+			p.y = p.y + old_marker_s.y - DIAMETER / 2;
+			
+			MouseEvent me = new MouseEvent(arg0.getComponent(), arg0.getID(), arg0.getWhen(), arg0.getModifiers(), p.x, p.y, arg0.getClickCount(), false);
+			
+			jpi.mouseReleased(me);
+		}
+	}
+	
+	
 	@Override
 	public void mouseMoved(MouseEvent arg0) {}
 

@@ -73,14 +73,16 @@ public class Editor {
 	}
 
 	public void setOperationType(String type) {
-		immagine.type = type;
+		immagine.setDrawOperationType(type);
 		immagine.resetSelections();
 	}
 	
-	public void operationComplete(boolean saved, int id, String type) {
-		System.out.println(saved+" "+id+" "+type);
-		if (saved)
+	public void operationComplete(boolean saved, int id, String type, boolean access) {
+		System.out.println(saved+" "+id+" "+type+" "+access);
+		if (saved) {
 			immagine.stopAll(false);
+			immagine.validateMarker(id, access);
+		}
 		else
 			immagine.delete(id, type);
 		immagine.resetSelections();

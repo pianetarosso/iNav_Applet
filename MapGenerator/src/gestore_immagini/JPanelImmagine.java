@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -12,7 +13,11 @@ import java.awt.event.MouseMotionListener;
 import javax.swing.JPanel;
 
 import objects.CommunicationWithJS;
+import objects.CustomPoint;
 import objects.Floor;
+import drawable.Marker;
+import drawable.MarkerMap;
+import drawable.PathArrayList;
 
 public class JPanelImmagine extends JPanel implements MouseListener, MouseMotionListener {
 
@@ -116,27 +121,27 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 	// blocco movimento e creazione di punti, path, oltre allo zoom e al movimento
 	public void stopAll(boolean stop) {
 
-		if (!stop && !debug) {
+		if (!stop) {
 			zoom.enableZoom(true);
 			move.disableMovement(false);
-			type = temp_type;
+			this.setDrawOperationType(temp_type);
 			temp_type = "";
 		}
-		else if (!debug){
+		else {
 			zoom.enableZoom(false);
 			move.disableMovement(true);
 			temp_type = type;
-			type = "";
+			this.setDrawOperationType("None");
 		}
-		selected_floor.stopAllMarkers(stop);
-		selected_floor.paths.stop = stop;
+
+		selected_floor.markers.stopAllMarkers(stop);
 		
 		if (!stop)
 			selected_floor.paths.validate();
 	}
 
-	
-	
+
+
 	// COMUNICAZIONE //////////////////////////////////////////////////////////////
 
 
@@ -144,10 +149,12 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 	// l'immagine a pieno schermo 
 	public void setSelectedFloor(int piano) {
 
+		
 		// trovo l'immagine corrispondente al piano
 		for (Floor f : floors) 
 			if (f.numero_di_piano == piano) {
 				this.selected_floor = f;
+				this.setDrawOperationType(type);
 				break;
 			}
 
@@ -169,17 +176,23 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 
 	// imposto il "metodo" di disegno selezionato
 	public void setDrawOperationType(String type) {
-		this.type = type;
-		System.out.println(type);
-		if (type == TYPE_MARKER) {
-			selected_floor.markers.addMarkersListener();
-			selected_floor.paths.removeMouseListeners();
+
+		if (type.contains(TYPE_MARKER)) {
+			this.type = TYPE_MARKER;
+			selected_floor.markers.stopAllMarkers(false);
 		}
 
-		if (type == TYPE_PATH) {
-			selected_floor.markers.removeMarkersListener();
-			selected_floor.paths.addListeners();
+		else if (type.contains(TYPE_PATH)) {
+			this.type = TYPE_PATH;
+			selected_floor.markers.stopAllMarkers(true);
 		}
+		
+		else {
+			this.type = "None";
+			selected_floor.markers.stopAllMarkers(true);
+		}
+
+		this.updatePanel();
 	}
 
 
@@ -189,9 +202,9 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 			selected_floor.markers.deleteMarker(id);
 		else
 			selected_floor.paths.delete();
-		
+
 		selected_floor.paths.validate();
-		
+
 		updatePanel();
 	}
 
@@ -201,18 +214,18 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 		selected_floor.paths.selectedPath = null;
 		updatePanel();
 	}
-	
+
 	// funzione che restituisce se i piani sono "validi" o no
 	public boolean updateValidation() {
 
 		if (floors.length < 1)
 			return false;
-		
+
 		for (Floor f : floors) 
 			if (!(f.paths.isValid() && f.markers.isValid()))
 				return false;
-			
-		
+
+
 		return true;
 	}
 
@@ -231,36 +244,178 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 
 	@Override
 	public void mouseDragged(MouseEvent arg0) {
-		if (zoom.isPointOnImage(arg0.getPoint()))
-			move.moveImage(arg0);
+
+		if (type == TYPE_PATH)
+			pathListener(arg0, "mouseDragged");
+		else
+			mouseMovement(arg0, "mouseDragged");
 	}
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
-		// disabilito l'uso dello zoom
-		zoom.enableZoom(false);
-		if (zoom.isPointOnImage(arg0.getPoint())) 
-			move.setOriginPoint(arg0);
-		arg0.consume();
+		
+		if (type == TYPE_PATH)
+			pathListener(arg0, "mousePressed");
+		else
+			mouseMovement(arg0, "mousePressed");
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
-		// abilito nuovamente l'uso dello zoom
-		zoom.enableZoom(true);
-		if (zoom.isPointOnImage(arg0.getPoint())) {
-			move.setOriginPoint(null);
-			arg0.consume();
-		}
+
+		if (type == TYPE_PATH)
+			pathListener(arg0, "mouseReleased");
+		else
+			mouseMovement(arg0, "mouseReleased");
 	}
 
 	@Override
 	public void mouseMoved(MouseEvent arg0) {}
 	@Override
-	public void mouseClicked(MouseEvent arg0) {}
+
+	public void mouseClicked(MouseEvent arg0) {
+		
+		if (type == TYPE_MARKER)
+			MarkerListener(arg0);
+		else if (type == TYPE_PATH)
+			pathListener(arg0, "mouseClicked");
+	}
+
 	@Override
 	public void mouseEntered(MouseEvent arg0) {}
 	@Override
 	public void mouseExited(MouseEvent arg0) {}
 
+	// funzione che si preoccupa di "validare" un marker, essendo questo un ingresso/ascensore/scala
+	public void validateMarker(int id, boolean access) {
+		selected_floor.markers.get(id).valido = access;
+	}
+
+
+	// funzione **UNICA** per la gestione del movimento dell'immagine nei listener
+	private void mouseMovement(MouseEvent arg0, String type) {
+
+		switch (type) {
+
+		case "mouseDragged" : {
+
+			// trascinamento dell'immagine
+			if (zoom.isPointOnImage(arg0.getPoint())) 
+				move.moveImage(arg0);
+			break;
+		}
+
+		case "mousePressed" : {
+
+			// inizio del trascinamento
+			zoom.enableZoom(false);
+			if (zoom.isPointOnImage(arg0.getPoint())) 
+				move.setOriginPoint(arg0);
+			break;
+		}
+
+		case "mouseReleased" : {
+
+			// fine del trascinamento
+			zoom.enableZoom(true);
+			if (zoom.isPointOnImage(arg0.getPoint())) 
+				move.setOriginPoint(null);
+			break;
+		}
+		}
+
+		arg0.consume();
+	}
+
+	// funzione per la gestione del listener sui markers
+	private void MarkerListener(MouseEvent arg0) {
+		if (zoom.isPointOnImage(arg0.getPoint()) && (selected_floor != null)) {
+
+			MarkerMap markers = selected_floor.markers;
+			Marker new_m = markers.addMarker(arg0.getPoint());
+
+			if (new_m != null) { 
+
+				// fermo TUTTO (zoom, movimento e listener)
+				if(!markers.cwjs.debug)
+					this.stopAll(true);
+
+				// aggiungo l'oggetto al JPanel principale
+				this.add(new_m);
+
+				// imposto la posizione dell'oggetto sul JPanel
+				new_m.setBounds();
+
+				new_m.setVisible(true);
+				new_m.setEnabled(true);
+
+				markers.setMarkerSelected(new_m.id);
+
+				this.updatePanel();
+
+				markers.cwjs.sendNewMarker(new_m, selected_floor.numero_di_piano);
+			}
+
+			if(this.debug && (selected_floor.markers.size() >= 4)) {
+				this.setDrawOperationType(JPanelImmagine.TYPE_PATH);
+				markers.get(0).valido = true;
+			}
+		}
+	}
+	
+	private void pathListener(MouseEvent arg0, String type) {
+		
+		PathArrayList paths = selected_floor.paths;
+		
+		if (!zoom.isPointOnImage(arg0.getPoint()))
+			return;
+		
+		switch (type) {
+		
+		case "mouseClicked" : {
+			
+			// individuo la path più vicina cliccata
+			Point point = arg0.getPoint();
+			paths.drawingPath = null;
+			paths.selectedPath = CustomPoint.findNearestPath(point, paths, zoom);
+
+			if (paths.selectedPath != null) {
+				paths.cwjs.deletePath();
+				this.stopAll(true);
+			}
+			this.updatePanel();
+			break;
+		}
+		
+		case "mousePressed" : {
+			
+			// inizio il disegno di una path
+			if (paths.drawingPath == null) {
+				paths.addPath(arg0.getPoint(), selected_floor.markers);
+				paths.selectedPath = null;
+			}
+			break;
+		}
+		
+		case "mouseReleased" : {
+		
+			// termino il disegno di una path
+			if (paths.drawingPath != null) 
+				paths.saveNewPath(arg0.getPoint(), selected_floor.markers);	
+			break;
+		}
+		
+		case "mouseDragged" : {
+			
+			// continuo a disegnare una path
+			if (paths.drawingPath != null) 
+				paths.drawingPath(arg0.getPoint());
+			else
+				paths.drawingPath = null;
+			break;
+		}
+		}
+		
+		arg0.consume();
+	}
 }
