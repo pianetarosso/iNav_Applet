@@ -198,14 +198,13 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 
 	// Cancellazione di un marker o path (funzione chiamata dal JS)
 	public void delete(int id, String type) {
+		
 		if (type.contains("marker"))
 			selected_floor.markers.deleteMarker(id);
 		else
 			selected_floor.paths.delete();
 
-		selected_floor.paths.validate();
-
-		updatePanel();
+		selected_floor.paths.validate();		
 	}
 
 	// elimino le selezioni dei marker e delle path (chiamata dal JS)
@@ -354,11 +353,11 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 				this.updatePanel();
 
 				markers.cwjs.sendNewMarker(new_m, selected_floor.numero_di_piano);
-			}
-
-			if(this.debug && (selected_floor.markers.size() >= 4)) {
-				this.setDrawOperationType(JPanelImmagine.TYPE_PATH);
-				markers.get(0).valido = true;
+				
+				if (this.debug && (markers.size() > 4)) {
+					this.setDrawOperationType(TYPE_PATH);
+					markers.get(0).valido = true;
+				}
 			}
 		}
 	}
@@ -381,7 +380,10 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 
 			if (paths.selectedPath != null) {
 				paths.cwjs.deletePath();
-				this.stopAll(true);
+				if(this.debug) 
+					delete(0, "path");
+				else
+					this.stopAll(true);
 			}
 			this.updatePanel();
 			break;
@@ -391,7 +393,7 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 			
 			// inizio il disegno di una path
 			if (paths.drawingPath == null) {
-				paths.addPath(arg0.getPoint(), selected_floor.markers);
+				paths.addPath(arg0.getPoint());
 				paths.selectedPath = null;
 			}
 			break;
@@ -401,7 +403,9 @@ public class JPanelImmagine extends JPanel implements MouseListener, MouseMotion
 		
 			// termino il disegno di una path
 			if (paths.drawingPath != null) 
-				paths.saveNewPath(arg0.getPoint(), selected_floor.markers);	
+				paths.saveNewPath(arg0.getPoint());	
+			if (paths.cwjs.debug && (paths.size() > 5))
+				this.delete(0, "marker");
 			break;
 		}
 		

@@ -79,12 +79,15 @@ public class Editor {
 	
 	public void operationComplete(boolean saved, int id, String type, boolean access) {
 		System.out.println(saved+" "+id+" "+type+" "+access);
-		if (saved) {
-			immagine.stopAll(false);
+		if (saved) 
+			
 			immagine.validateMarker(id, access);
-		}
-		else
+		
+		else 
 			immagine.delete(id, type);
+			
+		
+		immagine.stopAll(false);
 		immagine.resetSelections();
 	}
 

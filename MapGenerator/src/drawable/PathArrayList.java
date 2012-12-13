@@ -6,7 +6,6 @@ import gestore_immagini.ZoomManager;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Map;
 
 import objects.CommunicationWithJS;
 import objects.CustomPoint;
@@ -22,22 +21,24 @@ public class PathArrayList extends ArrayList<Path> {
 	public Path selectedPath = null;
 
 	public CommunicationWithJS cwjs;
+	public MarkerMap markers;
 
 
 
 	// costruttore
-	public PathArrayList(JPanelImmagine jpi, CommunicationWithJS cwjs) {
+	public PathArrayList(JPanelImmagine jpi, CommunicationWithJS cwjs, MarkerMap markers) {
 		super();
 
 		this.jpi = jpi;
 		this.zoom = jpi.zoom;
 		
 		this.cwjs = cwjs;
+		this.markers = markers;
 	}
 
 
 	// creo una nuova Path
-	public void addPath(Point p, Map<Integer, Marker> markers) {
+	public void addPath(Point p) {
 		CustomPoint P = CustomPoint.FindPoint(p.x, p.y, this, markers);
 
 		drawingPath = new Path(P, zoom); 
@@ -64,7 +65,7 @@ public class PathArrayList extends ArrayList<Path> {
 
 	// salvo una nuova path dopo aver testato che sia collegata ad almeno un marker
 	// o una path
-	public void saveNewPath(Point a, Map<Integer, Marker> markers) {
+	public void saveNewPath(Point a) {
 		CustomPoint A = CustomPoint.FindPoint(a.x, a.y, this, markers);
 
 		drawingPath.setArrivePoint(A);
@@ -92,6 +93,8 @@ public class PathArrayList extends ArrayList<Path> {
 	// funzione di validazione delle path
 	public void validate() {
 
+		markers.resetValidation();
+		
 		for(Path p : this) 
 			p.resetValidation();
 
@@ -105,7 +108,7 @@ public class PathArrayList extends ArrayList<Path> {
 				counter = pathValidation(drawingPath, counter);
 
 		} while (old_counter != counter);
-
+		
 		jpi.updatePanel();
 	}
 
@@ -145,10 +148,20 @@ public class PathArrayList extends ArrayList<Path> {
 	public void delete() {
 
 		this.remove(selectedPath);
-		selectedPath = null;
-		validate();
 		
-		jpi.isValid();
+		for (Path p : this) {
+			if (selectedPath.equals(p.A.path)) {
+				Point a = p.A.getPanelPosition();
+				p.A = CustomPoint.FindPoint(a.x, a.y, this, markers);
+			}
+			
+			if (selectedPath.equals(p.P.path)) {
+				Point po = p.P.getPanelPosition();
+				p.P = CustomPoint.FindPoint(po.x, po.y, this, markers);
+			}
+		}
+		
+		selectedPath = null;
 	}
 
 }

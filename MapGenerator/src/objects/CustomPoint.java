@@ -127,7 +127,7 @@ public class CustomPoint extends Point{
 
 			if ((distanceFromP <= MIN_DISTANCE ) && (distanceFromP < distance)) {
 				//out = 
-				return new CustomPoint(p.A.x, p.A.y, p, zoom);
+				return new CustomPoint(p.P.x, p.P.y, p, zoom);
 				//distance = distanceFromP;
 			}
 

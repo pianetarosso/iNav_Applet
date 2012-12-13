@@ -41,7 +41,7 @@ public class Floor {
 
 	public void initializePathsAndMarkers(JPanelImmagine jpi, ZoomManager zoom, CommunicationWithJS cwjs) {
 		markers = new MarkerMap(this, zoom, jpi, cwjs);
-		paths = new PathArrayList(jpi, cwjs);
+		paths = new PathArrayList(jpi, cwjs, markers);
 	}
 
 	public void loadImage() throws IOException {

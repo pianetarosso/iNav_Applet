@@ -4,12 +4,11 @@ import gestore_immagini.JPanelImmagine;
 import gestore_immagini.ZoomManager;
 
 import java.awt.Point;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.HashMap;
 import java.util.Map;
 
 import objects.CommunicationWithJS;
+import objects.CustomPoint;
 import objects.Floor;
 
 
@@ -113,14 +112,33 @@ public class MarkerMap extends HashMap<Integer, Marker> {
 	public void deleteMarker(int id) {
 
 		Marker m = this.get(id);
+		this.remove(id);
+		
+		for (Path p : floor.paths) {
+			
+			if ((m.x == p.A.x) && (m.y == p.A.y)) {
+				Point a = m.getScaledMarkerPosition();
+				p.A = CustomPoint.FindPoint(a.x, a.y, floor.paths, this);
+			}
+				
+			
+			if ((m.x == p.P.x) && (m.y == p.P.y)) {
+				Point po = m.getScaledMarkerPosition();
+				p.P = CustomPoint.FindPoint(po.x, po.y, floor.paths, this);
+			}
+		}
+			
 		m.setVisible(false);
 		m.setEnabled(false);
 		m.getParent().remove(m);
-		this.remove(id);
 		m = null;
-		jpi.isValid();
 	}
 
+	public void resetValidation() {
+		for (Map.Entry<Integer, Marker> m : this.entrySet()) {
+			m.getValue().validated = false;
+		}
+	}
 
 
 }
